@@ -53,7 +53,7 @@ function soo_pager ( $atts ) {
 	
 	$br = $wraptag ? '' : $break;
 
-	$uri = new Soo_Txp_Uri;
+	$uri = new Soo_Uri;
 	while ( $pgs ) {
 		$n = array_shift($pgs);
 		$uri->set_query_param('pg', $n);
