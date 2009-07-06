@@ -4,7 +4,7 @@ $plugin['name'] = 'soo_page_links';
 $plugin['version'] = '0.2';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/';
-$plugin['description'] = 'Google-ish pager widgets';
+$plugin['description'] = 'Page number link lists; page and article counts';
 
 // Plugin types:
 // 0 = regular plugin; loaded on the public web side only
@@ -131,6 +131,7 @@ function soo_article_count ( $atts ) {
 		array('/{first}/', '/{last}/', '/{total}/'),
 			array($first, $last, $total), $format);
 }
+
 
 
 # --- END PLUGIN CODE ---
