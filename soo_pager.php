@@ -1,6 +1,6 @@
 <?php
 
-$plugin['name'] = 'soo_pager';
+$plugin['name'] = 'soo_page_links';
 $plugin['version'] = '0.2';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/';
@@ -22,7 +22,7 @@ require_plugin('soo_txp_obj');
  //									Tags								//
 //---------------------------------------------------------------------//
 
-function soo_pager ( $atts ) {
+function soo_page_links ( $atts ) {
 
 	extract(lAtts(array(
 		'placeholder'	=>	'&hellip;',
@@ -39,8 +39,8 @@ function soo_pager ( $atts ) {
 		extract($thispage);
 	else {
 		foreach ( $atts as $k => $v )
-			$a .= $k . '="' . $v . '" ';
-		return '<txp:soo_pager ' . ( isset($a) ? $a : '' ) . '/>';
+			$a[] = $k . '="' . $v . '" ';
+		return '<txp:soo_page_links ' . ( isset($a) ? implode(' ', $a) : '' ) . '/>';
 	}	// so the tag can come before its associated article tag
 			
 	$w_start = max(1, 
@@ -86,8 +86,8 @@ function soo_page_count ( $atts ) {
 		extract($thispage);
 	else {
 		foreach ( $atts as $k => $v )
-			$a .= $k . '="' . $v . '" ';
-		return '<txp:soo_page_count ' . ( isset($a) ? $a : '' ) . '/>';
+			$a[] = $k . '="' . $v . '" ';
+		return '<txp:soo_page_count ' . ( isset($a) ? implode(' ', $a) : '' ) . '/>';
 	}	// so the tag can come before its associated article tag
 	
 	if ( $pg > 1 )
@@ -96,8 +96,12 @@ function soo_page_count ( $atts ) {
 		$prev = '';
 	if ( $pg < $numPages )
 		$next = older(array(), $next);
-	elseif ( ! $showalways )
-		$next = '';
+	else
+		if ( ! $showalways ) {
+			if ( $numPages == 1 )
+				return;
+			$next = '';
+		}
 	
 	return preg_replace(
 		array('/{prev}/', '/{next}/', '/{current}/', '/{total}/'),
@@ -115,8 +119,8 @@ function soo_article_count ( $atts ) {
 		extract($thispage);
 	else {
 		foreach ( $atts as $k => $v )
-			$a .= $k . '="' . $v . '" ';
-		return '<txp:soo_article_count ' . ( isset($a) ? $a : '' ) . '/>';
+			$a[] = $k . '="' . $v . '" ';
+		return '<txp:soo_article_count ' . ( isset($a) ? implode(' ', $a) : '' ) . '/>';
 	}	// so the tag can come before its associated article tag
 	
 	$limit = ceil($grand_total / $numPages);
@@ -162,7 +166,7 @@ div#sed_help .default {color:green;}
 # --- BEGIN PLUGIN HELP ---
  <div id="sed_help">
 
-h1. soo_pager
+h1. soo_page_links
 
 h2(#overview). Overview
 
@@ -172,9 +176,11 @@ Display page navigation widgets and information for article list pages. A rehash
 
 h2(#tags). Tags
 
-h3(#soo_pager). soo_pager
+h3(#soo_page_links). soo_page_links
 
-pre. <txp:soo_pager />
+Display a "Google-style" page navigation widget, i.e., a group of numbered links representing pages.
+
+pre. <txp:soo_page_links />
 
 h4. Attributes
 
@@ -206,7 +212,7 @@ Link text for the @{prev}@ link
 * @next@ _(text)_ %(default)default% @&raquo;@
 Link text for the @{next}@ link
 * @showalways@ _(boolean)_ %(default)default% @0@
-Whether or not to show @{prev}@ and @{next}@ on the first and last pages, respectively
+Whether or not to show @{prev}@ and @{next}@ on the first and last pages, respectively, or anything at all when the list is a single page
 
 h3(#soo_article_count). soo_article_count
 
@@ -215,7 +221,7 @@ pre. <txp:soo_article_count />
 h4. Attributes
 
 * @format@ _(format string)_ %(default)default% @ "Showing {first} to {last} of {total} articles" @
-Tag will output this string after replacing @{first}@, @{last}@, and @{total}@ with page numbers
+Tag will output this string after replacing @{first}@, @{last}@, and @{total}@ with article numbers
 
 h2(#history). Version History
 
