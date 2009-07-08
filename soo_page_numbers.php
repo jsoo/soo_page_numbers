@@ -1,15 +1,10 @@
 <?php
 
-$plugin['name'] = 'soo_page_links';
-$plugin['version'] = '0.2';
+$plugin['name'] = 'soo_page_numbers';
+$plugin['version'] = '0.2.1';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/';
-$plugin['description'] = 'Page number link lists; page and article counts';
-
-// Plugin types:
-// 0 = regular plugin; loaded on the public web side only
-// 1 = admin plugin; loaded on both the public and admin side
-// 2 = library; loaded only when include_plugin() or require_plugin() is called
+$plugin['description'] = 'Article list nav and page count widgets';
 $plugin['type'] = 0; 
 
 @include_once('zem_tpl.php');
@@ -32,6 +27,7 @@ function soo_page_links ( $atts ) {
 		'class'			=>	'',
 		'html_id'		=>	'',
 		'break' 		=>	'',
+		'showalways'	=>	false,
 	), $atts));
 	
 	global $thispage; // 'pg', 'numPages', 's', 'c', 'grand_total', 'total'
@@ -42,6 +38,8 @@ function soo_page_links ( $atts ) {
 			$a[] = $k . '="' . $v . '" ';
 		return '<txp:soo_page_links ' . ( isset($a) ? implode(' ', $a) : '' ) . '/>';
 	}	// so the tag can come before its associated article tag
+	
+	if ( ! $showalways and $numPages == 1 ) return;
 			
 	$w_start = max(1, 
 		min($pg - floor($window_size / 2), $numPages - $window_size + 1));
@@ -56,7 +54,7 @@ function soo_page_links ( $atts ) {
 	$uri = new Soo_Uri;
 	while ( $pgs ) {
 		$n = array_shift($pgs);
-		$uri->set_query_param('pg', $n);
+		$uri->set_query_param('pg', ( $n > 1 ? $n : null ));
 		$fill = $pgs ? ( $pgs[0] > $n + 1 ? $placeholder : $br ) : '';
 		if ( $n == $pg )
 			$out[] = tag($n, 'span', " class=\"$active_class\"");
@@ -90,49 +88,14 @@ function soo_page_count ( $atts ) {
 		return '<txp:soo_page_count ' . ( isset($a) ? implode(' ', $a) : '' ) . '/>';
 	}	// so the tag can come before its associated article tag
 	
-	if ( $pg > 1 )
-		$prev = newer(array(), $prev);
-	elseif ( ! $showalways )
-		$prev = '';
-	if ( $pg < $numPages )
-		$next = older(array(), $next);
-	else
-		if ( ! $showalways ) {
-			if ( $numPages == 1 )
-				return;
-			$next = '';
-		}
+	if ( ! $showalways and $numPages == 1 ) return;
 	
-	return preg_replace(
-		array('/{prev}/', '/{next}/', '/{current}/', '/{total}/'),
-			array($prev, $next, $pg, $numPages), $format);
+	$prev = $pg > 1 ? newer(array(), $prev) : ( $showalways ? $prev : '' );
+	$next = $pg < $numPages ? older(array(), $next) : ( $showalways ? $next : '' ); 
+		
+	return str_replace(array('{prev}', '{next}', '{current}', '{total}'),
+		array($prev, $next, $pg, $numPages), $format);
 }
-
-function soo_article_count ( $atts ) {
-
-	extract(lAtts(array(
-		'format' 		=>	'Showing {first} to {last} of {total} articles',
-	), $atts));
-	
-	global $thispage; // 'pg', 'numPages', 's', 'c', 'grand_total', 'total'
-	if ( is_array($thispage) )
-		extract($thispage);
-	else {
-		foreach ( $atts as $k => $v )
-			$a[] = $k . '="' . $v . '" ';
-		return '<txp:soo_article_count ' . ( isset($a) ? implode(' ', $a) : '' ) . '/>';
-	}	// so the tag can come before its associated article tag
-	
-	$limit = ceil($grand_total / $numPages);
-	$first = $limit * ($pg - 1) + 1;
-	$last = min(($limit * $pg), $total);
-	
-	return preg_replace(
-		array('/{first}/', '/{last}/', '/{total}/'),
-			array($first, $last, $total), $format);
-}
-
-
 
 # --- END PLUGIN CODE ---
 
@@ -167,13 +130,13 @@ div#sed_help .default {color:green;}
 # --- BEGIN PLUGIN HELP ---
  <div id="sed_help">
 
-h1. soo_page_links
+h1. soo_page_numbers
 
 h2(#overview). Overview
 
-Display page navigation widgets and information for article list pages. A rehash of the @rsx_page_number_list@ plugin, bringing it into the modern (Txp 4.0.8) era with more attributes for greater control, and also correct function with multiple query string parameters (as with search results or messy URL mode).
+Display page navigation widgets and information for article list pages. A rehash of the @rsx_page_number@ plugin, bringing it into the modern (Txp 4.0.8) era with more attributes for greater control, and also correct function with multiple query string parameters (as with search results, messy URL mode, or other Txp plugins that add their own query params).
 
-%(required)Requires the *soo_txp_obj* library plugin.%
+%(required)Requires PHP5 and the *soo_txp_obj* library plugin% (but see the README included in the download if you don't already have *soo_txp_obj* installed).
 
 h2(#tags). Tags
 
@@ -189,6 +152,8 @@ h4. Attributes
 Text to place on either end of the central page range (when there are many pages)
 * @window_size@ _(integer)_ %(default)default% @5@
 Size of central page range
+* @showalways@ _(boolean)_ %(default)default% @0@
+Whether or not to show anything when the list is a single page
 * @active_class@ _(HTML class)_ %(default)default% @here@
 Class for the @span@ surrounding the current page number
 * @wraptag@ _(text)_ %(default)default% empty
@@ -215,20 +180,18 @@ Link text for the @{next}@ link
 * @showalways@ _(boolean)_ %(default)default% @0@
 Whether or not to show @{prev}@ and @{next}@ on the first and last pages, respectively, or anything at all when the list is a single page
 
-h3(#soo_article_count). soo_article_count
-
-pre. <txp:soo_article_count />
-
-h4. Attributes
-
-* @format@ _(format string)_ %(default)default% @ "Showing {first} to {last} of {total} articles" @
-Tag will output this string after replacing @{first}@, @{last}@, and @{total}@ with article numbers
-
 h2(#history). Version History
+
+h3. 0.2.1 (2009/07/07)
+
+* Changed file name and one tag name 
+* The @showalways@ attribute of @soo_page_count@ now also affects output when the article list is only one page
+* @soo_page_links@ has also been given the @showalways@ attribute
+* Scrapped @soo_article_count@, which was inherently buggy (as is the @rsx_to_of@ it was based on)
 
 h3. 0.2 (2009/05/22)
 
-Code overhaul, fixed to work with any query string
+Not publicly released. Code overhaul, fixed to work with any query string
 
 h3. 0.1 (ages ago) 
 
