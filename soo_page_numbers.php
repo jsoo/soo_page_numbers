@@ -1,7 +1,7 @@
 <?php
 
 $plugin['name'] = 'soo_page_numbers';
-$plugin['version'] = '0.2.1';
+$plugin['version'] = '0.2.2';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/';
 $plugin['description'] = 'Article list nav and page count widgets';
@@ -51,25 +51,29 @@ function soo_page_links ( $atts ) {
 		array(1), range($w_start, $w_end), array($numPages)
 	));
 	
-	$br = $wraptag ? '' : $break;
+	$break_text = $wraptag ? '' : $break;
+	$text_tag = ( $break and $wraptag ) ? '' : 'span';
+	if ( $active_class )
+		$active_class = " class=\"$active_class\"";
 
 	$uri = new Soo_Uri;
 	while ( $pgs ) {
 		$n = array_shift($pgs);
 		$uri->set_query_param('pg', ( $n > 1 ? $n : null ));
-		$fill = $pgs ? ( $pgs[0] > $n + 1 ? $placeholder : $br ) : '';
+		$fill = $pgs ? ( $pgs[0] > $n + 1 ? $placeholder : $break_text ) : '';
 		if ( $n == $pg )
-			$out[] = tag($n, 'span', " class=\"$active_class\"");
+			$items[] = $text_tag ?
+				tag($n, $text_tag, $active_class) : $n;
 		else
-			$out[] = href($n, $uri->full, " title='Page $n'");
+			$items[] = href($n, $uri->full, " title='Page $n'");
 		if ( $n < $numPages and $fill )
-			$out[] = span($fill);
+			$items[] = $text_tag ?
+				tag($fill, $text_tag) : $fill;
 	}	
-	return isset($out) ? 
-		( $wraptag ? 
-			doWrap($out, $wraptag, $break, $class, '', '', '', $html_id) 
-				: implode("\n", $out) )
-		: '';
+	if ( isset($items) )
+		return $wraptag ? str_replace("<$break>$pg<", "<$break$active_class>$pg<",
+			doWrap($items, $wraptag, $break, $class, '', '', '', $html_id)) 
+			: implode($break_text ? '' : n, $items);
 }
 
 function soo_page_count ( $atts ) {
@@ -159,7 +163,7 @@ Size of central page range
 * @showalways@ _(boolean)_ %(default)default% @0@
 Whether or not to show anything when the list is a single page
 * @active_class@ _(HTML class)_ %(default)default% @here@
-Class for the @span@ surrounding the current page number
+Class for the current page number's tag (the @break@ tag, if any, otherwise @span@)
 * @wraptag@ _(text)_ %(default)default% empty
 HTML tag name (no brackets) to wrap the output
 * @class@ _(text)_ %(default)default% empty
@@ -167,7 +171,7 @@ HTML tag name (no brackets) to wrap the output
 * @html_id@ _(text)_ %(default)default% empty
 "HTML id":http://www.w3.org/TR/html401/struct/global.html#adef-id for the @wraptag@.
 * @break@ _(mixed)_ %(default)default% empty
-HTML tag name (no brackets) to wrap or text to place between adjacent page numbers. If @wraptag@ and @break@ are set, @break@ is assumed to be a tag name. Otherwise it is treated as text.
+HTML tag name (no brackets) to wrap or text to place between adjacent page numbers. If @wraptag@ and @break@ are set, @break@ is assumed to be a tag name. Otherwise it is treated as text (so don't use @break="br"@).
 
 h3(#soo_page_count). soo_page_count
 
@@ -185,6 +189,11 @@ Link text for the @{next}@ link
 Whether or not to show @{prev}@ and @{next}@ on the first and last pages, respectively, or anything at all when the list is a single page
 
 h2(#history). Version History
+
+h3. 0.2.2 (2009/07/09)
+
+* When both @wraptag@ and @break@ are set, non-linked text items (i.e., current page number or placeholder text) are no longer wrapped in @span@ tags, and @active_class@ is applied to the @break@ element containing the current page number.
+* Both tags now do a context check and show nothing if the page is not an article list
 
 h3. 0.2.1 (2009/07/07)
 
