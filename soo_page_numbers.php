@@ -1,7 +1,7 @@
 <?php
 
 $plugin['name'] = 'soo_page_numbers';
-$plugin['version'] = '0.2.2';
+$plugin['version'] = '0.2.3';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/';
 $plugin['description'] = 'Article list nav and page count widgets';
@@ -12,10 +12,6 @@ $plugin['type'] = 0;
 # --- BEGIN PLUGIN CODE ---
 
 require_plugin('soo_txp_obj');
-
-  //---------------------------------------------------------------------//
- //									Tags								//
-//---------------------------------------------------------------------//
 
 function soo_page_links ( $atts ) {
 
@@ -30,16 +26,10 @@ function soo_page_links ( $atts ) {
 		'showalways'	=>	false,
 	), $atts));
 	
-	global $thispage, $is_article_list; 
-	// $thispage: 'pg', 'numPages', 's', 'c', 'grand_total', 'total'
-	if ( ! $is_article_list ) return;
-	if ( is_array($thispage) )
-		extract($thispage);
-	else {
-		foreach ( $atts as $k => $v )
-			$a[] = $k . '="' . $v . '" ';
-		return '<txp:soo_page_links ' . ( isset($a) ? implode(' ', $a) : '' ) . '/>';
-	}	// so the tag can come before its associated article tag
+	global $thispage; 
+
+	if ( is_array($thispage) ) extract($thispage);
+	else return _soo_page_numbers_secondpass(__FUNCTION__, $atts);
 	
 	if ( ! $showalways and $numPages == 1 ) return;
 			
@@ -53,8 +43,7 @@ function soo_page_links ( $atts ) {
 	
 	$break_text = $wraptag ? '' : $break;
 	$text_tag = ( $break and $wraptag ) ? '' : 'span';
-	if ( $active_class )
-		$active_class = " class=\"$active_class\"";
+	$active_class = $active_class ? " class=\"$active_class\"" : '';
 
 	$uri = new Soo_Uri;
 	while ( $pgs ) {
@@ -85,16 +74,10 @@ function soo_page_count ( $atts ) {
 		'showalways'	=>	false,
 	), $atts));
 	
-	global $thispage, $is_article_list; 
-	// $thispage: 'pg', 'numPages', 's', 'c', 'grand_total', 'total'
-	if ( ! $is_article_list ) return;
-	if ( is_array($thispage) )
-		extract($thispage);
-	else {
-		foreach ( $atts as $k => $v )
-			$a[] = $k . '="' . $v . '" ';
-		return '<txp:soo_page_count ' . ( isset($a) ? implode(' ', $a) : '' ) . '/>';
-	}	// so the tag can come before its associated article tag
+	global $thispage; 		
+
+	if ( is_array($thispage) ) extract($thispage);
+	else return _soo_page_numbers_secondpass(__FUNCTION__, $atts);
 	
 	if ( ! $showalways and $numPages == 1 ) return;
 	
@@ -103,6 +86,16 @@ function soo_page_count ( $atts ) {
 		
 	return str_replace(array('{prev}', '{next}', '{current}', '{total}'),
 		array($prev, $next, $pg, $numPages), $format);
+}
+
+function _soo_page_numbers_secondpass ( $func, $atts ) {
+// in case $func's associated tag comes before an article tag, 
+// this runs the tag again during textpattern()'s second parse() pass
+	global $pretext;
+	if ( $pretext['secondpass'] ) return; // you only live twice
+	foreach ( $atts as $k => $v )
+		$a[] = $k . '="' . $v . '" ';
+	return "<txp:$func " . ( isset($a) ? implode(' ', $a) : '' ) . '/>';
 }
 
 # --- END PLUGIN CODE ---
@@ -189,6 +182,10 @@ Link text for the @{next}@ link
 Whether or not to show @{prev}@ and @{next}@ on the first and last pages, respectively, or anything at all when the list is a single page
 
 h2(#history). Version History
+
+h3. 0.2.3 (2009/07/09)
+
+* Improved context check to prevent raw tag output
 
 h3. 0.2.2 (2009/07/09)
 
