@@ -30,7 +30,9 @@ function soo_page_links ( $atts ) {
 		'showalways'	=>	false,
 	), $atts));
 	
-	global $thispage; // 'pg', 'numPages', 's', 'c', 'grand_total', 'total'
+	global $thispage, $is_article_list; 
+	// $thispage: 'pg', 'numPages', 's', 'c', 'grand_total', 'total'
+	if ( ! $is_article_list ) return;
 	if ( is_array($thispage) )
 		extract($thispage);
 	else {
@@ -79,7 +81,9 @@ function soo_page_count ( $atts ) {
 		'showalways'	=>	false,
 	), $atts));
 	
-	global $thispage; // 'pg', 'numPages', 's', 'c', 'grand_total', 'total'
+	global $thispage, $is_article_list; 
+	// $thispage: 'pg', 'numPages', 's', 'c', 'grand_total', 'total'
+	if ( ! $is_article_list ) return;
 	if ( is_array($thispage) )
 		extract($thispage);
 	else {
