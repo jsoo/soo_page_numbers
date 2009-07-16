@@ -1,7 +1,7 @@
 <?php
 
 $plugin['name'] = 'soo_page_numbers';
-$plugin['version'] = '0.2.3';
+$plugin['version'] = '0.2.4';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/';
 $plugin['description'] = 'Article list nav and page count widgets';
@@ -31,7 +31,7 @@ function soo_page_links ( $atts ) {
 	if ( is_array($thispage) ) extract($thispage);
 	else return _soo_page_numbers_secondpass(__FUNCTION__, $atts);
 	
-	if ( ! $showalways and $numPages == 1 ) return;
+	if ( ! $showalways and $numPages <= 1 ) return;
 			
 	$w_start = max(1, 
 		min($pg - floor($window_size / 2), $numPages - $window_size + 1));
@@ -79,8 +79,8 @@ function soo_page_count ( $atts ) {
 	if ( is_array($thispage) ) extract($thispage);
 	else return _soo_page_numbers_secondpass(__FUNCTION__, $atts);
 	
-	if ( ! $showalways and $numPages == 1 ) return;
-	
+	if ( ! $showalways and $numPages <= 1 ) return;
+
 	$prev = $pg > 1 ? newer(array(), $prev) : ( $showalways ? $prev : '' );
 	$next = $pg < $numPages ? older(array(), $next) : ( $showalways ? $next : '' ); 
 		
@@ -182,6 +182,10 @@ Link text for the @{next}@ link
 Whether or not to show @{prev}@ and @{next}@ on the first and last pages, respectively, or anything at all when the list is a single page
 
 h2(#history). Version History
+
+h3. 0.2.4 (2009/07/16)
+
+* Fixed @showalways@ bug when an article list returns 0 pages (e.g. empty category)
 
 h3. 0.2.3 (2009/07/09)
 
