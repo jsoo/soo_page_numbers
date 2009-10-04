@@ -3,7 +3,7 @@
 $plugin['name'] = 'soo_page_numbers';
 $plugin['version'] = '0.2.4';
 $plugin['author'] = 'Jeff Soo';
-$plugin['author_uri'] = 'http://ipsedixit.net/';
+$plugin['author_uri'] = 'http://ipsedixit.net/txp/';
 $plugin['description'] = 'Article list nav and page count widgets';
 $plugin['type'] = 0; 
 
@@ -95,7 +95,7 @@ function _soo_page_numbers_secondpass ( $func, $atts ) {
 	if ( $pretext['secondpass'] ) return; // you only live twice
 	foreach ( $atts as $k => $v )
 		$a[] = $k . '="' . $v . '" ';
-	return "<txp:$func " . ( isset($a) ? implode(' ', $a) : '' ) . '/>';
+	return "<txp:$func " . ( isset($a) ? implode('', $a) : '' ) . '/>';
 }
 
 # --- END PLUGIN CODE ---
@@ -137,7 +137,7 @@ h2(#overview). Overview
 
 Display page navigation widgets and information for article list pages. A rehash of the @rsx_page_number@ plugin, bringing it into the modern (Txp 4.0.8) era with more attributes for greater control, and also correct function with multiple query string parameters (as with search results, messy URL mode, or other Txp plugins that add their own query params).
 
-%(required)Requires PHP5 and the *soo_txp_obj* library plugin% (but see the README included in the download if you don't already have *soo_txp_obj* installed).
+As downloaded it %(required)requires PHP5 and the *soo_txp_obj* library plugin%. But it only uses a small part of the library, so if you are comfortable editing code you can copy in the relevant code to avoid the extra plugin, if you don't need *soo_txp_obj* for something else. Delete the @require_plugin('soo_txp_obj')@ line, and paste in the @soo_uri@ class from *soo_txp_obj*. If you are running the MLP Pack you might also want to copy in the 15 or so lines above @soo_uri@, starting with @global $plugin_callback;@.
 
 h2(#tags). Tags
 
