@@ -1,7 +1,7 @@
 <?php
 
 $plugin['name'] = 'soo_page_numbers';
-$plugin['version'] = '0.2.4';
+$plugin['version'] = '0.2.5';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/txp/';
 $plugin['description'] = 'Article list nav and page count widgets';
@@ -45,7 +45,7 @@ function soo_page_links ( $atts ) {
 	$text_tag = ( $break and $wraptag ) ? '' : 'span';
 	$active_class = $active_class ? " class=\"$active_class\"" : '';
 
-	$uri = new Soo_Uri;
+	$uri = new soo_uri;
 	while ( $pgs ) {
 		$n = array_shift($pgs);
 		$uri->set_query_param('pg', ( $n > 1 ? $n : null ));
@@ -71,7 +71,10 @@ function soo_page_count ( $atts ) {
 		'format' 		=>	'{prev} Page {current} of {total} {next}',
 		'prev'			=>	'&laquo;',
 		'next'			=>	'&raquo;',
+		'first'			=>	'|&laquo;',
+		'last'			=>	'&raquo;|',
 		'showalways'	=>	false,
+		'wraptag'		=>	'',
 	), $atts));
 	
 	global $thispage; 		
@@ -80,12 +83,43 @@ function soo_page_count ( $atts ) {
 	else return _soo_page_numbers_secondpass(__FUNCTION__, $atts);
 	
 	if ( ! $showalways and $numPages <= 1 ) return;
+	
+	$uri = new soo_uri;
+	if ( $pg > 1 ) {
+		$uri->set_query_param('pg', null);
+		$first = href($first, $uri->full, ' title="Page 1"');
+	}
+	elseif ( ! $showalways )
+		$first = '';
+	
+	if ( $pg < $numPages ) {
+		$uri->set_query_param('pg', $numPages);
+		$last = href($last, $uri->full, " title='Page $numPages'");
+	}
+	elseif ( ! $showalways )
+		$last = '';
 
-	$prev = $pg > 1 ? newer(array(), $prev) : ( $showalways ? $prev : '' );
-	$next = $pg < $numPages ? older(array(), $next) : ( $showalways ? $next : '' ); 
+	$prev = $pg > 1 ? newer(array(), $prev) : 
+		( $showalways ? $prev : '' );
+	$next = $pg < $numPages ? older(array(), $next) : 
+		( $showalways ? $next : '' ); 
 		
-	return str_replace(array('{prev}', '{next}', '{current}', '{total}'),
-		array($prev, $next, $pg, $numPages), $format);
+	$out = str_replace(
+		array('{prev}', '{next}', '{first}', '{last}', '{current}', '{total}'),
+		array($prev, $next, $first, $last, $pg, $numPages), $format);
+	return $wraptag ? tag($out, $wraptag) : $out;
+}
+
+function soo_prev_page ( $atts ) {
+	if ( isset($atts['text']) ) $atts['prev'] = $atts['text'];
+	$atts['format'] = '{prev}';
+	return soo_page_count($atts);
+}
+
+function soo_next_page ( $atts ) {
+	if ( isset($atts['text']) ) $atts['next'] = $atts['text'];
+	$atts['format'] = '{next}';
+	return soo_page_count($atts);
 }
 
 function _soo_page_numbers_secondpass ( $func, $atts ) {
@@ -135,7 +169,7 @@ h1. soo_page_numbers
 
 h2(#overview). Overview
 
-Display page navigation widgets and information for article list pages. A rehash of the @rsx_page_number@ plugin, bringing it into the modern (Txp 4.0.8) era with more attributes for greater control, and also correct function with multiple query string parameters (as with search results, messy URL mode, or other Txp plugins that add their own query params).
+Display page navigation widgets and information for article list pages. A rehash of the @rsx_page_number@ plugin, bringing it into the modern (Txp 4.0.8 +) era with more attributes for greater control, and also correct function with multiple query string parameters (as with search results, messy URL mode, or other Txp plugins that add their own query params).
 
 As downloaded it %(required)requires PHP5 and the *soo_txp_obj* library plugin%. But it only uses a small part of the library, so if you are comfortable editing code you can copy in the relevant code to avoid the extra plugin, if you don't need *soo_txp_obj* for something else. Delete the @require_plugin('soo_txp_obj')@ line, and paste in the following two classes from *soo_txp_obj*: @soo_obj@ (at the top of *soo_txp_obj*) and @soo_uri@ (at the bottom). If you are running the MLP Pack you might also want to copy in the 15 or so lines above @soo_uri@, starting with @global $plugin_callback;@.
 
@@ -173,15 +207,35 @@ pre. <txp:soo_page_count />
 h4. Attributes
 
 * @format@ _(format string)_ %(default)default% @ "{prev} Page {current} of {total} {next}" @
-Tag will output this string after replacing @{prev}@ and @{next}@ with links, and @{current}@ and @{total}@ with page numbers
-* @prev@ _(text)_ %(default)default% @&laquo;@
+Tag will output this string after replacing @{prev}@, @{next}@, @{first}@, and @{last}@ with links, and @{current}@ and @{total}@ with page numbers
+* @prev@ _(text)_ %(default)default% @&laquo;@ (&laquo;)
 Link text for the @{prev}@ link
-* @next@ _(text)_ %(default)default% @&raquo;@
+* @next@ _(text)_ %(default)default% @&raquo;@ (&raquo;)
 Link text for the @{next}@ link
+* @first@ _(text)_ %(default)default% @|&laquo;@ (|&laquo;)
+Link text for the @{first}@ link
+* @last@ _(text)_ %(default)default% @&raquo;|@ (&raquo;|)
+Link text for the @{last}@ link
 * @showalways@ _(boolean)_ %(default)default% @0@
 Whether or not to show @{prev}@ and @{next}@ on the first and last pages, respectively, or anything at all when the list is a single page
+* @wraptag@ _(XHTML tag name, no brackets)_ optional tag to wrap the output
+
+h3(#soo_first_page). soo_prev_page, soo_next_page
+
+Shortcuts for @soo_page_count@ when all you want is a single link. For example, @soo_prev_page@ is a shortcut for @<txp:soo_page_count format="{prev}" />@.
+
+h4. Attributes
+
+In addition to @soo_page_count@ attributes, each of these tags also accepts a @text@ attribute for setting the link text. The following tags are equivalent:
+
+pre. <txp:soo_next_page text="Next" />
+<txp:soo_page_count format="{next}" next="Next" />
 
 h2(#history). Version History
+
+h3. 0.2.5 (2009/10/21)
+
+* New attributes and shortcut tags for @soo_page_count@
 
 h3. 0.2.4 (2009/07/16)
 
