@@ -1,7 +1,7 @@
 <?php
 
 $plugin['name'] = 'soo_page_numbers';
-$plugin['version'] = '0.2.5';
+$plugin['version'] = '0.2.6';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/txp/';
 $plugin['description'] = 'Article list nav and page count widgets';
@@ -236,7 +236,7 @@ h2(#history). Version History
 
 h3. 0.2.6 (2009/11/23)
 
-* @soo_page_links@ now restores the global @$thispage['pg']@ to its initial state, to avoid conflicts with other context-dependent plugins
+* @soo_page_links@ now restores the @'pg'@ query parameter to its initial state, to avoid conflicts with other context-dependent plugins
 
 h3. 0.2.5 (2009/10/21)
 
