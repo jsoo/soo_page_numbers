@@ -58,7 +58,8 @@ function soo_page_links ( $atts ) {
 		if ( $n < $numPages and $fill )
 			$items[] = $text_tag ?
 				tag($fill, $text_tag) : $fill;
-	}	
+	}
+	$uri->set_query_param('pg', ( $pg > 1 ? $pg : null ));
 	if ( isset($items) )
 		return $wraptag ? str_replace("<$break>$pg<", "<$break$active_class>$pg<",
 			doWrap($items, $wraptag, $break, $class, '', '', '', $html_id)) 
@@ -232,6 +233,10 @@ pre. <txp:soo_next_page text="Next" />
 <txp:soo_page_count format="{next}" next="Next" />
 
 h2(#history). Version History
+
+h3. 0.2.6 (2009/11/23)
+
+* @soo_page_links@ now restores the global @$thispage['pg']@ to its initial state, to avoid conflicts with other context-dependent plugins
 
 h3. 0.2.5 (2009/10/21)
 
