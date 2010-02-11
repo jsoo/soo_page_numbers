@@ -1,7 +1,7 @@
 <?php
 
 $plugin['name'] = 'soo_page_numbers';
-$plugin['version'] = '0.2.6';
+$plugin['version'] = '0.2.7';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/txp/';
 $plugin['description'] = 'Article list nav and page count widgets';
@@ -112,13 +112,19 @@ function soo_page_count ( $atts ) {
 }
 
 function soo_prev_page ( $atts ) {
-	if ( isset($atts['text']) ) $atts['prev'] = $atts['text'];
+	if ( isset($atts['text']) ) {
+		$atts['prev'] = $atts['text'];
+		unset($atts['text']);
+	}
 	$atts['format'] = '{prev}';
 	return soo_page_count($atts);
 }
 
 function soo_next_page ( $atts ) {
-	if ( isset($atts['text']) ) $atts['next'] = $atts['text'];
+	if ( isset($atts['text']) ) {
+		$atts['next'] = $atts['text'];
+		unset($atts['text']);
+	}
 	$atts['format'] = '{next}';
 	return soo_page_count($atts);
 }
@@ -233,6 +239,10 @@ pre. <txp:soo_next_page text="Next" />
 <txp:soo_page_count format="{next}" next="Next" />
 
 h2(#history). Version History
+
+h3. 0.2.7 (2010/2/11)
+
+* Fixed Textpattern notice about non-existent attribute when using @soo_prev_page@ or @soo_next_page@ (functionality not affected)
 
 h3. 0.2.6 (2009/11/23)
 
