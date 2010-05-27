@@ -180,6 +180,8 @@ Display page navigation widgets and information for article list pages. A rehash
 
 As downloaded it %(required)requires PHP5 and the *soo_txp_obj* library plugin%. But it only uses a small part of the library, so if you are comfortable editing code you can copy in the relevant code to avoid the extra plugin, if you don't need *soo_txp_obj* for something else. Delete the @require_plugin('soo_txp_obj')@ line, and paste in the following two classes from *soo_txp_obj*: @soo_obj@ (at the top of *soo_txp_obj*) and @soo_uri@ (at the bottom). If you are running the MLP Pack you might also want to copy in the 15 or so lines above @soo_uri@, starting with @global $plugin_callback;@.
 
+%(warning)Note on using with multiple @article@ tags:% If you have more than one @article@ tag on the page (not including @article_custom@ tags, or lists of sticky articles) *soo_page_numbers* will take its values from the first @article@ tag. This is true no matter where you put any *soo_page_numbers* tags.
+
 h2(#tags). Tags
 
 h3(#soo_page_links). soo_page_links
