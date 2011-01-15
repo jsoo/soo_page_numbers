@@ -107,7 +107,7 @@ if ( @txpinterface == 'public' )
 	if ( $textpack = load_lang_event('soo_page_numbers') )
 	{
 		global $textarray;
-		$textarray = array_merge($textarray, $textpack);
+		$textarray += $textpack;
 	}
 }
 
