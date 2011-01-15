@@ -5,7 +5,11 @@ $plugin['version'] = '0.3.0';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/txp/';
 $plugin['description'] = 'Article list nav and page count widgets';
-$plugin['type'] = 0; 
+$plugin['type'] = 1; 
+
+defined('PLUGIN_LIFECYCLE_NOTIFY') or define('PLUGIN_LIFECYCLE_NOTIFY', 0x0002); 
+$plugin['flags'] = PLUGIN_LIFECYCLE_NOTIFY;
+
 $plugin['textpack'] = <<< EOT
 #@soo_page_numbers
 #@language en-gb
@@ -52,7 +56,7 @@ EOT;
 /////////////////// DEVELOPMENT CYCLE ONLY /////////////////////////
 ///// Load gTxt() strings when running plugin from cache ///////////
 
-if ( @in_array(txpinterface, array('public', 'admin')) )
+if ( isset($plugin['textpack']) && @in_array(txpinterface, array('public', 'admin')) )
 {
 	global $textarray;
 	$is_current_lang = false;
@@ -81,8 +85,23 @@ if ( @in_array(txpinterface, array('public', 'admin')) )
 
 require_plugin('soo_txp_obj');
 
-function soo_page_links ( $atts ) {
+if ( @txpinterface == 'admin' ) 
+{
+	add_privs('plugin_lifecycle.soo_page_numbers','1,2');
+	register_callback('soo_page_numbers_lifecycle', 'plugin_lifecycle.soo_page_numbers');
+}
 
+// Note: callback_event() does not display message from lifecycle callbacks
+function soo_page_numbers_lifecycle ( $event, $step )
+{
+	if ( substr($event, strlen('plugin_lifecycle.')) === 'soo_page_numbers' && $step === 'deleted' )
+	{
+		safe_delete('txp_lang', "event = 'soo_page_numbers'");
+	}
+}
+
+function soo_page_links ( $atts )
+{
 	extract(lAtts(array(
 		'placeholder'	=>	'&hellip;',
 		'window_size'	=>	5,
@@ -114,7 +133,8 @@ function soo_page_links ( $atts ) {
 	$active_class = $active_class ? " class=\"$active_class\"" : '';
 
 	$uri = new soo_uri;
-	while ( $pgs ) {
+	while ( $pgs )
+	{
 		$n = array_shift($pgs);
 		$uri->set_query_param('pg', ( $n > 1 ? $n : null ));
 		$fill = $pgs ? ( $pgs[0] > $n + 1 ? $placeholder : $break_text ) : '';
@@ -134,8 +154,8 @@ function soo_page_links ( $atts ) {
 			: implode($break_text ? '' : n, $items);
 }
 
-function soo_page_count ( $atts ) {
-
+function soo_page_count ( $atts )
+{
 	extract(lAtts(array(
 		'format' 		=>	gTxt('soo_page_count'),
 		'prev'			=>	'&laquo;',
@@ -179,8 +199,10 @@ function soo_page_count ( $atts ) {
 	return $wraptag ? tag($out, $wraptag) : $out;
 }
 
-function soo_prev_page ( $atts ) {
-	if ( isset($atts['text']) ) {
+function soo_prev_page ( $atts )
+{
+	if ( isset($atts['text']) )
+	{
 		$atts['prev'] = $atts['text'];
 		unset($atts['text']);
 	}
@@ -188,8 +210,10 @@ function soo_prev_page ( $atts ) {
 	return soo_page_count($atts);
 }
 
-function soo_next_page ( $atts ) {
-	if ( isset($atts['text']) ) {
+function soo_next_page ( $atts )
+{
+	if ( isset($atts['text']) )
+	{
 		$atts['next'] = $atts['text'];
 		unset($atts['text']);
 	}
@@ -197,7 +221,8 @@ function soo_next_page ( $atts ) {
 	return soo_page_count($atts);
 }
 
-function _soo_page_numbers_secondpass ( $func, $atts ) {
+function _soo_page_numbers_secondpass ( $func, $atts )
+{
 // in case $func's associated tag comes before an article tag, 
 // this runs the tag again during textpattern()'s second parse() pass
 	global $pretext;
@@ -309,6 +334,10 @@ pre. <txp:soo_next_page text="Next" />
 <txp:soo_page_count format="{next}" next="Next" />
 
 h2(#history). Version History
+
+h3. 0.3.0 (?????)
+
+* Plugin now includes a Textpack to localize pre-formatted text output such as "Page {current} of {total}". Currently includes 19 languages.
 
 h3. 0.2.7 (2010/2/11)
 
