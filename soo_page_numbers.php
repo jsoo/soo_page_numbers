@@ -58,22 +58,22 @@ EOT;
 
 if ( isset($plugin['textpack']) && @in_array(txpinterface, array('public', 'admin')) )
 {
-	global $textarray;
-	$is_current_lang = false;
-	foreach ( explode(n, $plugin['textpack']) as $line )
-	{
-		if ( preg_match('/^#@language\s+([a-z]{2,2}-[a-z]{2,2})/', $line, $match) )
-		{
-			if ( $match[1] == LANG )
-				$is_current_lang = true;
-			elseif ( $is_current_lang )
-				break;
-			else
-				continue;
-		}
-		if ( $is_current_lang && preg_match('/^(\w+)\s*=>\s*(.+)/', $line, $match) )
-			$textarray[$match{1}] = $match[2];
-	}
+// 	global $textarray;
+// 	$is_current_lang = false;
+// 	foreach ( explode(n, $plugin['textpack']) as $line )
+// 	{
+// 		if ( preg_match('/^#@language\s+([a-z]{2,2}-[a-z]{2,2})/', $line, $match) )
+// 		{
+// 			if ( $match[1] == LANG )
+// 				$is_current_lang = true;
+// 			elseif ( $is_current_lang )
+// 				break;
+// 			else
+// 				continue;
+// 		}
+// 		if ( $is_current_lang && preg_match('/^(\w+)\s*=>\s*(.+)/', $line, $match) )
+// 			$textarray[$match{1}] = $match[2];
+// 	}
 }
 
 /////////////////// DEVELOPMENT CYCLE ONLY /////////////////////////
@@ -91,12 +91,23 @@ if ( @txpinterface == 'admin' )
 	register_callback('soo_page_numbers_lifecycle', 'plugin_lifecycle.soo_page_numbers');
 }
 
+// delete the Textpack
 // Note: callback_event() does not display message from lifecycle callbacks
 function soo_page_numbers_lifecycle ( $event, $step )
 {
 	if ( substr($event, strlen('plugin_lifecycle.')) === 'soo_page_numbers' && $step === 'deleted' )
 	{
 		safe_delete('txp_lang', "event = 'soo_page_numbers'");
+	}
+}
+
+// load the Textpack
+if ( @txpinterface == 'public' )
+{
+	if ( $textpack = load_lang_event('soo_page_numbers') )
+	{
+		global $textarray;
+		$textarray = array_merge($textarray, $textpack);
 	}
 }
 
