@@ -1,11 +1,79 @@
 <?php
 
 $plugin['name'] = 'soo_page_numbers';
-$plugin['version'] = '0.2.7';
+$plugin['version'] = '0.3.0';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/txp/';
 $plugin['description'] = 'Article list nav and page count widgets';
 $plugin['type'] = 0; 
+$plugin['textpack'] = <<< EOT
+#@soo_page_numbers
+#@language en-gb
+soo_page_count => {prev} Page {current} of {total} {next}
+#@language en-us
+soo_page_count => {prev} Page {current} of {total} {next}
+#@language de-de
+soo_page_count => {prev} Seite {current} von {total} {next}
+#@language da-dk
+soo_page_count => {prev} Side {current} af {total} {next}
+#@language cs-cz
+soo_page_count => {prev} Stránka {current} z {total} {next}
+#@language fr-fr
+soo_page_count => {prev} Page {current} sur {total} {next}
+#@language it-it
+soo_page_count => {prev} Pagina {current} di {total} {next}
+#@language sv-se
+soo_page_count => {prev} Sida {current} av {total} {next}
+#@language ru-ru
+soo_page_count => {prev} Страница {current} всего {total} {next}
+#@language nl-nl
+soo_page_count => {prev} Pagina {current} van {total} {next}
+#@language es-es
+soo_page_count => {prev} Página {current} de {total} {next}
+#@language ca-es
+soo_page_count => {prev} Pàgina {current} de {total} {next}
+#@language lt-lt
+soo_page_count => {prev} Puslapis {current} iš {total} {next}
+#@language lv-lv
+soo_page_count => {prev} Lapa {current} no {total} {next}
+#@language pt-br
+soo_page_count => {prev} Página {current} de {total} {next}
+#@language pt-pt
+soo_page_count => {prev} Página {current} de {total} {next}
+#@language ro-ro
+soo_page_count => {prev} Pagina {current} din {total} {next}
+#@language id-id
+soo_page_count => {prev} Halaman {current} dari {total} {next}
+#@language fa-ir
+soo_page_count => {next} {total} از {current} صفحه {prev}
+EOT;
+
+/******************************************************************/
+/////////////////// DEVELOPMENT CYCLE ONLY /////////////////////////
+///// Load gTxt() strings when running plugin from cache ///////////
+
+if ( @in_array(txpinterface, array('public', 'admin')) )
+{
+	global $textarray;
+	$is_current_lang = false;
+	foreach ( explode(n, $plugin['textpack']) as $line )
+	{
+		if ( preg_match('/^#@language\s+([a-z]{2,2}-[a-z]{2,2})/', $line, $match) )
+		{
+			if ( $match[1] == LANG )
+				$is_current_lang = true;
+			elseif ( $is_current_lang )
+				break;
+			else
+				continue;
+		}
+		if ( $is_current_lang && preg_match('/^(\w+)\s*=>\s*(.+)/', $line, $match) )
+			$textarray[$match{1}] = $match[2];
+	}
+}
+
+/////////////////// DEVELOPMENT CYCLE ONLY /////////////////////////
+/******************************************************************/
 
 @include_once('zem_tpl.php');
 
@@ -54,7 +122,7 @@ function soo_page_links ( $atts ) {
 			$items[] = $text_tag ?
 				tag($n, $text_tag, $active_class) : $n;
 		else
-			$items[] = href($n, $uri->full, " title='Page $n'");
+			$items[] = href($n, $uri->full, ' title="' . gTxt('page') . sp . $n . '"');
 		if ( $n < $numPages and $fill )
 			$items[] = $text_tag ?
 				tag($fill, $text_tag) : $fill;
@@ -69,7 +137,7 @@ function soo_page_links ( $atts ) {
 function soo_page_count ( $atts ) {
 
 	extract(lAtts(array(
-		'format' 		=>	'{prev} Page {current} of {total} {next}',
+		'format' 		=>	gTxt('soo_page_count'),
 		'prev'			=>	'&laquo;',
 		'next'			=>	'&raquo;',
 		'first'			=>	'|&laquo;',
@@ -88,21 +156,21 @@ function soo_page_count ( $atts ) {
 	$uri = new soo_uri;
 	if ( $pg > 1 ) {
 		$uri->set_query_param('pg', null);
-		$first = href($first, $uri->full, ' title="Page 1"');
+		$first = href($first, $uri->full, ' title="' . gTxt('page') . ' 1"');
 	}
 	elseif ( ! $showalways )
 		$first = '';
 	
 	if ( $pg < $numPages ) {
 		$uri->set_query_param('pg', $numPages);
-		$last = href($last, $uri->full, " title='Page $numPages'");
+		$last = href($last, $uri->full, ' title="' . gTxt('page') . sp . $numPages . '"');
 	}
 	elseif ( ! $showalways )
 		$last = '';
 
-	$prev = $pg > 1 ? newer(array(), $prev) : 
+	$prev = $pg > 1 ? newer(array('title' => gTxt('prev')), $prev) : 
 		( $showalways ? $prev : '' );
-	$next = $pg < $numPages ? older(array(), $next) : 
+	$next = $pg < $numPages ? older(array('title' => gTxt('next')), $next) : 
 		( $showalways ? $next : '' ); 
 		
 	$out = str_replace(
