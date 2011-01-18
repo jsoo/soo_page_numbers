@@ -28,8 +28,12 @@ soo_page_count => {prev} Page {current} sur {total} {next}
 soo_page_count => {prev} Pagina {current} di {total} {next}
 #@language sv-se
 soo_page_count => {prev} Sida {current} av {total} {next}
+#@language no-no
+soo_page_count => {prev} Side {current} av {total} {next}
+#@language fi-fi
+soo_page_count => {prev} {current} sivu {total} sivusta {next}
 #@language ru-ru
-soo_page_count => {prev} Страница {current} всего {total} {next}
+soo_page_count => {prev} Страница {current}, всего {total} {next}
 #@language nl-nl
 soo_page_count => {prev} Pagina {current} van {total} {next}
 #@language es-es
@@ -56,8 +60,8 @@ EOT;
 /////////////////// DEVELOPMENT CYCLE ONLY /////////////////////////
 ///// Load gTxt() strings when running plugin from cache ///////////
 
-if ( isset($plugin['textpack']) && @in_array(txpinterface, array('public', 'admin')) )
-{
+// if ( ! empty($plugin['textpack']) && @in_array(txpinterface, array('public', 'admin')) )
+// {
 // 	global $textarray;
 // 	$is_current_lang = false;
 // 	foreach ( explode(n, $plugin['textpack']) as $line )
@@ -74,7 +78,7 @@ if ( isset($plugin['textpack']) && @in_array(txpinterface, array('public', 'admi
 // 		if ( $is_current_lang && preg_match('/^(\w+)\s*=>\s*(.+)/', $line, $match) )
 // 			$textarray[$match{1}] = $match[2];
 // 	}
-}
+// }
 
 /////////////////// DEVELOPMENT CYCLE ONLY /////////////////////////
 /******************************************************************/
@@ -284,7 +288,7 @@ Display page navigation widgets and information for article list pages. A rehash
 
 As downloaded it %(required)requires PHP5 and the *soo_txp_obj* library plugin%. But it only uses a small part of the library, so if you are comfortable editing code you can copy in the relevant code to avoid the extra plugin, if you don't need *soo_txp_obj* for something else. Delete the @require_plugin('soo_txp_obj')@ line, and paste in the following two classes from *soo_txp_obj*: @soo_obj@ (at the top of *soo_txp_obj*) and @soo_uri@ (at the bottom). If you are running the MLP Pack you might also want to copy in the 15 or so lines above @soo_uri@, starting with @global $plugin_callback;@.
 
-%(warning)Note on using with multiple @article@ tags:% If you have more than one @article@ tag on the page (not including @article_custom@ tags, or lists of sticky articles) *soo_page_numbers* will take its values from the first @article@ tag. This is true no matter where you put any *soo_page_numbers* tags.
+%(warning)Note:% If you have more than one pagination-capable tag on the page (@article@ if not @status="sticky"@, or any of @images@, @file_download_list@, or @linklist@ if both @limit@ and @pageby@ are set) *soo_page_numbers* will take its values from the first such tag. This is true no matter where you put any *soo_page_numbers* tags.
 
 h2(#tags). Tags
 
@@ -346,49 +350,51 @@ pre. <txp:soo_next_page text="Next" />
 
 h2(#history). Version History
 
-h3. 0.3.0 (?????)
+h3. 0.3.0 (2011-01-18)
 
-* Plugin now includes a Textpack to localize pre-formatted text output such as "Page {current} of {total}". Currently includes 19 languages.
+* Plugin now includes a Textpack to localize pre-formatted text output such as "Page {current} of {total}". Currently includes 21 languages.
 
-h3. 0.2.7 (2010/2/11)
+h3. 0.2.7 (2010-02-11)
 
 * Fixed Textpattern notice about non-existent attribute when using @soo_prev_page@ or @soo_next_page@ (functionality not affected)
 
-h3. 0.2.6 (2009/11/23)
+h3. 0.2.6 (2009-11-23)
 
 * @soo_page_links@ now restores the @'pg'@ query parameter to its initial state, to avoid conflicts with other context-dependent plugins
 
-h3. 0.2.5 (2009/10/21)
+h3. 0.2.5 (2009-10-21)
 
 * New attributes and shortcut tags for @soo_page_count@
 
-h3. 0.2.4 (2009/07/16)
+h3. 0.2.4 (2009-07-16)
 
 * Fixed @showalways@ bug when an article list returns 0 pages (e.g. empty category)
 
-h3. 0.2.3 (2009/07/09)
+h3. 0.2.3 (2009-07-09)
 
 * Improved context check to prevent raw tag output
 
-h3. 0.2.2 (2009/07/09)
+h3. 0.2.2 (2009-07-09)
 
 * When both @wraptag@ and @break@ are set, non-linked text items (i.e., current page number or placeholder text) are no longer wrapped in @span@ tags, and @active_class@ is applied to the @break@ element containing the current page number.
 * Both tags now do a context check and show nothing if the page is not an article list
 
-h3. 0.2.1 (2009/07/07)
+h3. 0.2.1 (2009-07-07)
 
 * Changed file name and one tag name 
 * The @showalways@ attribute of @soo_page_count@ now also affects output when the article list is only one page
 * @soo_page_links@ has also been given the @showalways@ attribute
 * Scrapped @soo_article_count@, which was inherently buggy (as is the @rsx_to_of@ it was based on)
 
-h3. 0.2 (2009/05/22)
+h3. 0.2 (2009-05-22)
 
 Not publicly released. Code overhaul, fixed to work with any query string
 
 h3. 0.1 (ages ago) 
 
 Not publicly released, not very good either, just a sorry hack of what was probably a quick one-off plugin to begin with (it was early days for Txp).
+
+h2. <!-- end -->
 
  </div>
 # --- END PLUGIN HELP ---
