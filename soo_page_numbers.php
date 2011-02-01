@@ -108,10 +108,11 @@ function soo_page_numbers_lifecycle ( $event, $step )
 // load the Textpack
 if ( @txpinterface == 'public' )
 {
-	if ( $textpack = load_lang_event('soo_page_numbers') )
+	if ( $soo_page_numbers_textpack = load_lang_event('soo_page_numbers') )
 	{
 		global $textarray;
-		$textarray += $textpack;
+		$textarray += $soo_page_numbers_textpack;
+		unset($soo_page_numbers_textpack);
 	}
 }
 
@@ -326,7 +327,7 @@ pre. <txp:soo_page_count />
 h4. Attributes
 
 * @format@ _(format string)_ %(default)default% @ "{prev} Page {current} of {total} {next}" @
-Tag will output this string after replacing @{prev}@, @{next}@, @{first}@, and @{last}@ with links, and @{current}@ and @{total}@ with page numbers
+Tag will output this string (in your language, if among the 21 included) after replacing @{prev}@, @{next}@, @{first}@, and @{last}@ with links, and @{current}@ and @{total}@ with page numbers
 * @prev@ _(text)_ %(default)default% @&laquo;@ (&laquo;)
 Link text for the @{prev}@ link
 * @next@ _(text)_ %(default)default% @&raquo;@ (&raquo;)
