@@ -1,7 +1,7 @@
 <?php
 
 $plugin['name'] = 'soo_page_numbers';
-$plugin['version'] = '0.3.0';
+$plugin['version'] = '0.3.1';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/txp/';
 $plugin['description'] = 'Article list nav and page count widgets';
@@ -190,25 +190,26 @@ function soo_page_count ( $atts )
 	if ( ! $showalways and $numPages <= 1 ) return;
 	
 	$uri = new soo_uri;
-	if ( $pg > 1 ) {
+	if ( $pg > 1 )
+	{
 		$uri->set_query_param('pg', null);
 		$first = href($first, $uri->full, ' title="' . gTxt('page') . ' 1"');
+		$prev_pg_param = $pg > 2 ? $pg - 1 : null;
+		$uri->set_query_param('pg', $prev_pg_param);
+		$prev = href($prev, $uri->full, ' title="' . gTxt('prev') . '"' );
 	}
 	elseif ( ! $showalways )
-		$first = '';
+		$first = $prev = '';
 	
 	if ( $pg < $numPages ) {
 		$uri->set_query_param('pg', $numPages);
 		$last = href($last, $uri->full, ' title="' . gTxt('page') . sp . $numPages . '"');
+		$uri->set_query_param('pg', $pg + 1);
+		$next = href($next, $uri->full, ' title="' . gTxt('next') . '"' );
 	}
 	elseif ( ! $showalways )
-		$last = '';
-
-	$prev = $pg > 1 ? newer(array('title' => gTxt('prev')), $prev) : 
-		( $showalways ? $prev : '' );
-	$next = $pg < $numPages ? older(array('title' => gTxt('next')), $next) : 
-		( $showalways ? $next : '' ); 
-		
+		$last = $next = '';
+			
 	$out = str_replace(
 		array('{prev}', '{next}', '{first}', '{last}', '{current}', '{total}'),
 		array($prev, $next, $first, $last, $pg, $numPages), $format);
@@ -352,6 +353,10 @@ pre. <txp:soo_next_page text="Next" />
 <txp:soo_page_count format="{next}" next="Next" />
 
 h2(#history). Version History
+
+h3. 0.3.1 (2012-01-27)
+
+* @soo_page_count@ (hence also @soo_prev_page@ and @soo_next_page@) now preserve non-Txp query params for "next" and "prev" links.
 
 h3. 0.3.0 (2011-01-18)
 
