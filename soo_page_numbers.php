@@ -1,7 +1,7 @@
 <?php
 
 $plugin['name'] = 'soo_page_numbers';
-$plugin['version'] = '0.3.1';
+$plugin['version'] = '0.3.2';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/txp/';
 $plugin['description'] = 'Article list nav and page count widgets';
@@ -83,9 +83,18 @@ EOT;
 /////////////////// DEVELOPMENT CYCLE ONLY /////////////////////////
 /******************************************************************/
 
-@include_once('zem_tpl.php');
+defined('txpinterface') or @include_once('zem_tpl.php');
 
 # --- BEGIN PLUGIN CODE ---
+
+if(class_exists('\Textpattern\Tag\Registry')) {
+	Txp::get('\Textpattern\Tag\Registry')
+		->register('soo_page_links')
+		->register('soo_page_count')
+		->register('soo_prev_page')
+		->register('soo_next_page')
+		;
+}
 
 require_plugin('soo_txp_obj');
 
@@ -353,6 +362,10 @@ pre. <txp:soo_next_page text="Next" />
 <txp:soo_page_count format="{next}" next="Next" />
 
 h2(#history). Version History
+
+h3. 0.3.2 (2017-02-15)
+
+* Textpattern 4.6 compatibility update
 
 h3. 0.3.1 (2012-01-27)
 
