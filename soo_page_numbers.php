@@ -1,7 +1,7 @@
 <?php
 
 $plugin['name'] = 'soo_page_numbers';
-$plugin['version'] = '0.3.2';
+$plugin['version'] = '0.4.0';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/txp/';
 $plugin['description'] = 'Article list nav and page count widgets';
@@ -96,8 +96,6 @@ if(class_exists('\Textpattern\Tag\Registry')) {
 		;
 }
 
-require_plugin('soo_txp_obj');
-
 if ( @txpinterface == 'admin' ) 
 {
 	add_privs('plugin_lifecycle.soo_page_numbers','1,2');
@@ -138,13 +136,20 @@ function soo_page_links ( $atts )
 		'showalways'	=>	false,
 	), $atts));
 	
-	global $thispage; 
+	global $thispage, $pretext, $m; 
 
-	if ( is_array($thispage) ) extract($thispage);
-	else return _soo_page_numbers_secondpass(__FUNCTION__, $atts);
+	if ( ! is_array($thispage) ) 
+	    return _soo_page_numbers_secondpass(__FUNCTION__, $atts);
 	
-	if ( ! $showalways and $numPages <= 1 ) return;
+	if ( ! $showalways and $thispage['numPages'] <= 1 ) return;
 			
+    $numPages = $thispage['numPages'];
+    $pg = $thispage['pg'];
+    if ( ! empty($pretext['author']) )
+        $author = get_author_name($pretext['author']);
+    else
+        $author = '';
+
 	$w_start = max(1, 
 		min($pg - floor($window_size / 2), $numPages - $window_size + 1));
 	$w_end = min($w_start + $window_size - 1, $numPages);
@@ -157,22 +162,31 @@ function soo_page_links ( $atts )
 	$text_tag = ( $break and $wraptag ) ? '' : 'span';
 	$active_class = $active_class ? " class=\"$active_class\"" : '';
 
-	$uri = new soo_uri;
 	while ( $pgs )
 	{
 		$n = array_shift($pgs);
-		$uri->set_query_param('pg', ( $n > 1 ? $n : null ));
 		$fill = $pgs ? ( $pgs[0] > $n + 1 ? $placeholder : $break_text ) : '';
 		if ( $n == $pg )
 			$items[] = $text_tag ?
 				tag($n, $text_tag, $active_class) : $n;
 		else
-			$items[] = href($n, $uri->full, ' title="' . gTxt('page') . sp . $n . '"');
+        {
+            $url = pagelinkurl(array(
+                'month'   => @$pretext['month'],
+                'pg'      => $n,
+                's'       => @$pretext['s'],
+                'c'       => @$pretext['c'],
+                'context' => @$pretext['context'],
+                'q'       => @$pretext['q'],
+                'm'       => @$m,
+                'author'  => $author,
+            ));
+			$items[] = href($n, $url, ' title="' . gTxt('page') . sp . $n . '"');
+        }
 		if ( $n < $numPages and $fill )
 			$items[] = $text_tag ?
 				tag($fill, $text_tag) : $fill;
 	}
-	$uri->set_query_param('pg', ( $pg > 1 ? $pg : null ));
 	if ( isset($items) )
 		return $wraptag ? str_replace("<$break>$pg<", "<$break$active_class>$pg<",
 			doWrap($items, $wraptag, $break, $class, '', '', '', $html_id)) 
@@ -191,30 +205,45 @@ function soo_page_count ( $atts )
 		'wraptag'		=>	'',
 	), $atts));
 	
-	global $thispage; 		
+	global $thispage, $pretext, $m; 		
 
-	if ( is_array($thispage) ) extract($thispage);
-	else return _soo_page_numbers_secondpass(__FUNCTION__, $atts);
+	if ( ! is_array($thispage) ) 
+	    return _soo_page_numbers_secondpass(__FUNCTION__, $atts);
 	
-	if ( ! $showalways and $numPages <= 1 ) return;
+	if ( ! $showalways and $thispage['numPages'] <= 1 ) return;
 	
-	$uri = new soo_uri;
+    $numPages = $thispage['numPages'];
+    $pg = $thispage['pg'];
+    if ( ! empty($pretext['author']) )
+        $author = get_author_name($pretext['author']);
+    else
+        $author = '';
+
+    $qs = array(
+        'month'   => @$pretext['month'],
+        'pg'      => 1,
+        's'       => @$pretext['s'],
+        'c'       => @$pretext['c'],
+        'context' => @$pretext['context'],
+        'q'       => @$pretext['q'],
+        'm'       => @$m,
+        'author'  => $author,
+    );
+
 	if ( $pg > 1 )
 	{
-		$uri->set_query_param('pg', null);
-		$first = href($first, $uri->full, ' title="' . gTxt('page') . ' 1"');
-		$prev_pg_param = $pg > 2 ? $pg - 1 : null;
-		$uri->set_query_param('pg', $prev_pg_param);
-		$prev = href($prev, $uri->full, ' title="' . gTxt('prev') . '"' );
+		$first = href($first, pagelinkurl($qs), ' title="' . gTxt('page') . ' 1"');
+        $qs['pg'] = $pg - 1;
+		$prev = href($prev, pagelinkurl($qs), ' title="' . gTxt('prev') . '"' );
 	}
 	elseif ( ! $showalways )
 		$first = $prev = '';
 	
 	if ( $pg < $numPages ) {
-		$uri->set_query_param('pg', $numPages);
-		$last = href($last, $uri->full, ' title="' . gTxt('page') . sp . $numPages . '"');
-		$uri->set_query_param('pg', $pg + 1);
-		$next = href($next, $uri->full, ' title="' . gTxt('next') . '"' );
+		$qs['pg'] = $numPages;
+		$last = href($last, pagelinkurl($qs), ' title="' . gTxt('page') . sp . $numPages . '"');
+		$qs['pg'] = $pg + 1;
+		$next = href($next, pagelinkurl($qs), ' title="' . gTxt('next') . '"' );
 	}
 	elseif ( ! $showalways )
 		$last = $next = '';
@@ -295,11 +324,11 @@ h1. soo_page_numbers
 
 h2(#overview). Overview
 
-Display page navigation widgets and information for article list pages. A rehash of the @rsx_page_number@ plugin, bringing it into the modern (Txp 4.0.8 +) era with more attributes for greater control, and also correct function with multiple query string parameters (as with search results, messy URL mode, or other Txp plugins that add their own query params).
+Display page navigation widgets and information for article list pages. (Inspired by @rsx_page_number@, an old plugin from Txp's early days.)
 
 Version 0.3.0 includes a Textpack to localize pre-formatted text output such as "Page {current} of {total}". Currently includes 21 languages.
 
-As downloaded it %(required)requires PHP5 and the *soo_txp_obj* library plugin%. But it only uses a small part of the library, so if you are comfortable editing code you can copy in the relevant code to avoid the extra plugin, if you don't need *soo_txp_obj* for something else. Delete the @require_plugin('soo_txp_obj')@ line, and paste in the following two classes from *soo_txp_obj*: @soo_obj@ (at the top of *soo_txp_obj*) and @soo_uri@ (at the bottom). If you are running the MLP Pack you might also want to copy in the 15 or so lines above @soo_uri@, starting with @global $plugin_callback;@.
+NB: Version 0.4.0 has shifted to native Txp functionality for generating URLs, and in at least one case this means the behavior is not identical to that of prior versions. In particular, the @p@ (image ID) query parameter is not preserved in page links. This is intentional. (Version 0.4.0 also does away with the requirement for an external library plugin.)
 
 %(warning)Note:% If you have more than one pagination-capable tag on the page (@article@ if not @status="sticky"@, or any of @images@, @file_download_list@, or @linklist@ if both @limit@ and @pageby@ are set) *soo_page_numbers* will take its values from the first such tag. This is true no matter where you put any *soo_page_numbers* tags.
 
@@ -362,6 +391,10 @@ pre. <txp:soo_next_page text="Next" />
 <txp:soo_page_count format="{next}" next="Next" />
 
 h2(#history). Version History
+
+h3. 0.4.0 (2017-03-04)
+
+* Refactored to eliminate the requirement for an external library plugin. (NB: this means, inter alia, that the @p@ (image ID) query parameter is no longer preserved in page links.)
 
 h3. 0.3.2 (2017-02-15)
 
