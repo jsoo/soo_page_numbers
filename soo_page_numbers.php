@@ -318,9 +318,25 @@ div#sed_help .default {color:green;}
 -->
 <!-- HELP SECTION
 # --- BEGIN PLUGIN HELP ---
+
  <div id="sed_help">
 
 h1. soo_page_numbers
+
+ <div id="toc">
+
+h1. soo_page_break
+
+h2. Contents
+
+* "Overview":#overview
+* "Tags":#tags
+** "soo_page_links":#soo_page_links
+** "soo_page_count":#soo_page_count
+** "soo_prev_page":#soo_prev_page
+* "History":#history
+
+ </div>
 
 h2(#overview). Overview
 
@@ -379,7 +395,7 @@ Link text for the @{last}@ link
 Whether or not to show @{prev}@ and @{next}@ on the first and last pages, respectively, or anything at all when the list is a single page
 * @wraptag@ _(XHTML tag name, no brackets)_ optional tag to wrap the output
 
-h3(#soo_first_page). soo_prev_page, soo_next_page
+h3(#soo_prev_page). soo_prev_page, soo_next_page
 
 Shortcuts for @soo_page_count@ when all you want is a single link. For example, @soo_prev_page@ is a shortcut for @<txp:soo_page_count format="{prev}" />@.
 
@@ -451,6 +467,7 @@ Not publicly released, not very good either, just a sorry hack of what was proba
 h2. <!-- end -->
 
  </div>
+
 # --- END PLUGIN HELP ---
 -->
 <?php
