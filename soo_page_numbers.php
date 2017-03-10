@@ -1,7 +1,7 @@
 <?php
 
 $plugin['name'] = 'soo_page_numbers';
-$plugin['version'] = '0.4.0';
+$plugin['version'] = '0.4.1';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/txp/';
 $plugin['description'] = 'Article list nav and page count widgets';
@@ -136,19 +136,15 @@ function soo_page_links ( $atts )
 		'showalways'	=>	false,
 	), $atts));
 	
-	global $thispage, $pretext, $m; 
+	global $thispage; 
 
 	if ( ! is_array($thispage) ) 
 	    return _soo_page_numbers_secondpass(__FUNCTION__, $atts);
 	
 	if ( ! $showalways and $thispage['numPages'] <= 1 ) return;
-			
+	
     $numPages = $thispage['numPages'];
     $pg = $thispage['pg'];
-    if ( ! empty($pretext['author']) )
-        $author = get_author_name($pretext['author']);
-    else
-        $author = '';
 
 	$w_start = max(1, 
 		min($pg - floor($window_size / 2), $numPages - $window_size + 1));
@@ -171,17 +167,8 @@ function soo_page_links ( $atts )
 				tag($n, $text_tag, $active_class) : $n;
 		else
         {
-            $url = pagelinkurl(array(
-                'month'   => @$pretext['month'],
-                'pg'      => $n,
-                's'       => @$pretext['s'],
-                'c'       => @$pretext['c'],
-                'context' => @$pretext['context'],
-                'q'       => @$pretext['q'],
-                'm'       => @$m,
-                'author'  => $author,
-            ));
-			$items[] = href($n, $url, ' title="' . gTxt('page') . sp . $n . '"');
+            $uri = _soo_page_numbers_uri($n);
+			$items[] = href($n, $uri, ' title="'.gTxt('page').sp.$n.'"');
         }
 		if ( $n < $numPages and $fill )
 			$items[] = $text_tag ?
@@ -205,7 +192,7 @@ function soo_page_count ( $atts )
 		'wraptag'		=>	'',
 	), $atts));
 	
-	global $thispage, $pretext, $m; 		
+	global $thispage; 		
 
 	if ( ! is_array($thispage) ) 
 	    return _soo_page_numbers_secondpass(__FUNCTION__, $atts);
@@ -214,36 +201,18 @@ function soo_page_count ( $atts )
 	
     $numPages = $thispage['numPages'];
     $pg = $thispage['pg'];
-    if ( ! empty($pretext['author']) )
-        $author = get_author_name($pretext['author']);
-    else
-        $author = '';
-
-    $qs = array(
-        'month'   => @$pretext['month'],
-        'pg'      => 1,
-        's'       => @$pretext['s'],
-        'c'       => @$pretext['c'],
-        'context' => @$pretext['context'],
-        'q'       => @$pretext['q'],
-        'm'       => @$m,
-        'author'  => $author,
-    );
 
 	if ( $pg > 1 )
 	{
-		$first = href($first, pagelinkurl($qs), ' title="' . gTxt('page') . ' 1"');
-        $qs['pg'] = $pg - 1;
-		$prev = href($prev, pagelinkurl($qs), ' title="' . gTxt('prev') . '"' );
+		$first = href($first, _soo_page_numbers_uri(1), ' title="' . gTxt('page') . ' 1"');
+		$prev = href($prev, _soo_page_numbers_uri($pg - 1), ' title="' . gTxt('prev') . '"' );
 	}
 	elseif ( ! $showalways )
 		$first = $prev = '';
 	
 	if ( $pg < $numPages ) {
-		$qs['pg'] = $numPages;
-		$last = href($last, pagelinkurl($qs), ' title="' . gTxt('page') . sp . $numPages . '"');
-		$qs['pg'] = $pg + 1;
-		$next = href($next, pagelinkurl($qs), ' title="' . gTxt('next') . '"' );
+		$last = href($last, _soo_page_numbers_uri($numPages), ' title="' . gTxt('page') . sp . $numPages . '"');
+		$next = href($next, _soo_page_numbers_uri($pg + 1), ' title="' . gTxt('next') . '"' );
 	}
 	elseif ( ! $showalways )
 		$last = $next = '';
@@ -285,6 +254,30 @@ function _soo_page_numbers_secondpass ( $func, $atts )
 	foreach ( $atts as $k => $v )
 		$a[] = $k . '="' . $v . '" ';
 	return "<txp:$func " . ( isset($a) ? implode('', $a) : '' ) . '/>';
+}
+
+function _soo_page_numbers_uri($pg)
+{
+    static $baseUri, $qParams;
+    
+    if (empty($baseUri)) {
+        $baseUri = preg_replace ('%(.+)\?.+%', '$1', $_SERVER['REQUEST_URI']);
+        $qParams = array();
+        parse_str($_SERVER['QUERY_STRING'], $qParams);
+        if (isset($qParams['p'])) {
+            unset($qParams['p']);
+        }
+    }
+    
+    if ($pg > 1) {
+        $qParams['pg'] = $pg;
+    } elseif (isset($qParams['pg'])) {
+        unset($qParams['pg']);
+    }
+    if (empty($qParams)) {
+        return $baseUri;
+    }
+    return $baseUri.'?'.http_build_query($qParams, '', '&amp;');
 }
 
 # --- END PLUGIN CODE ---
@@ -344,7 +337,7 @@ Display page navigation widgets and information for article list pages. (Inspire
 
 Version 0.3.0 includes a Textpack to localize pre-formatted text output such as "Page {current} of {total}". Currently includes 21 languages.
 
-NB: Version 0.4.0 has shifted to native Txp functionality for generating URLs, and in at least one case this means the behavior is not identical to that of prior versions. In particular, the @p@ (image ID) query parameter is not preserved in page links. This is intentional. (Version 0.4.0 also does away with the requirement for an external library plugin.)
+NB: Version 0.4.0 did away with the requirement for an external library plugin, but by moving to native Txp URI handling this changed behavior on sites with custom URI schemes. 0.4.1 restores that behavior. Note that the @p@ (image ID) query parameter is not preserved; this is intentional.
 
 %(warning)Note:% If you have more than one pagination-capable tag on the page (@article@ if not @status="sticky"@, or any of @images@, @file_download_list@, or @linklist@ if both @limit@ and @pageby@ are set) *soo_page_numbers* will take its values from the first such tag. This is true no matter where you put any *soo_page_numbers* tags.
 
@@ -407,6 +400,10 @@ pre. <txp:soo_next_page text="Next" />
 <txp:soo_page_count format="{next}" next="Next" />
 
 h2(#history). Version History
+
+h3. 0.4.1 (2017-03-10)
+
+* New URI handling algorithm, reverting to version 0.3 behavior, but as a freestanding plugin
 
 h3. 0.4.0 (2017-03-04)
 
