@@ -318,8 +318,6 @@ h1. soo_page_numbers
 
  <div id="toc">
 
-h1. soo_page_break
-
 h2. Contents
 
 * "Overview":#overview
