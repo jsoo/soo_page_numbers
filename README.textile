@@ -89,6 +89,10 @@ pre. <txp:soo_next_page text="Next" />
 
 h2(#history). Version History
 
+h3. 0.4.2 (2020-03-09)
+
+* Fixed longstanding bug that used to be harmless but turned lethal in Txp 4.8.0
+
 h3. 0.4.1 (2017-03-10)
 
 * New URI handling algorithm, reverting to version 0.3 behavior, but as a freestanding plugin

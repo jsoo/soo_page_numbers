@@ -1,16 +1,16 @@
 <?php
-$plugin['version'] = '0.4.1';
+# $plugin['name'] = 'abc_plugin';
+$plugin['version'] = '0.4.2';
 $plugin['author'] = 'Jeff Soo';
 $plugin['author_uri'] = 'http://ipsedixit.net/txp/';
 $plugin['description'] = 'Article list nav and page count widgets';
 $plugin['type'] = 1; 
-$plugin['allow_html_help'] = 1;
 
 defined('PLUGIN_LIFECYCLE_NOTIFY') or define('PLUGIN_LIFECYCLE_NOTIFY', 0x0002); 
 $plugin['flags'] = PLUGIN_LIFECYCLE_NOTIFY;
 
 $plugin['textpack'] = <<< EOT
-#@soo_page_numbers
+#@public
 #@language en-gb
 soo_page_count => {prev} Page {current} of {total} {next}
 #@language en-us
@@ -83,7 +83,6 @@ EOT;
 /******************************************************************/
 
 if (! defined('txpinterface')) {
-    global $compiler_cfg;
     @include_once('config.php');
     @include_once($compiler_cfg['path']);
 }
@@ -114,7 +113,7 @@ function soo_page_numbers_lifecycle ($event, $step)
 }
 
 // load the Textpack
-if (@txpinterface == 'public') {
+if (@txpinterface == 'admin') {
     if ($soo_page_numbers_textpack = load_lang_event('soo_page_numbers')) {
         global $textarray;
         $textarray += $soo_page_numbers_textpack;
